@@ -1,0 +1,7 @@
+function [C]  = cov_mtx(s)
+    %covariance matx
+    temp = s'*s;
+    %making variance = 1
+    temp = diag(1./(temp));
+    C = temp*(*temp;
+end

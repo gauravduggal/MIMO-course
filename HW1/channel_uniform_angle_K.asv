@@ -1,0 +1,50 @@
+
+function [H] = channel_uniform_angle_K(Nt, Nr, t, fd, d1,d2,N,l,K)
+H = zeros(length(t),Nr,Nt);
+% rng(1,'philox')
+phinvec = 2*pi*rand(1,N-1);
+thetavec = 2*pi*rand(1,N-1);
+omegavec = 2*pi*rand(1,N-1);
+phin0 = 2*pi*rand(1);
+    for idrx = 1:Nr
+        for idtx = 1:Nt
+                
+                %dominant path at angle = 0
+                thetan = 0;
+                omegan = 0;
+%                 p_dominant = zeros(1,length(t));
+                p_dominant = exp(1j*2*pi*fd*cos(thetan)*t+phin0)*exp(-1j*2*pi/l*d1*(idtx-1)*sin(omegan))*exp(-1j*2*pi/l*d2*(idrx-1)*sin(thetan));
+                p_dominant = p_dominant/(std(p_dominant));
+                mpc_combined = zeros(1,length(t));
+
+                for idn = 1:N-1
+                    phin = phinvec(1,idn);
+                    %AoA
+                    thetan = thetavec(1,idn);
+                    %AoD
+                    omegan = omegavec(1,idn);
+                    temporal = exp(1j*2*pi*fd*cos(thetan)*t+phin);
+%                     mpc_phase = exp(1j*phin);
+                    tx_side = exp(-1j*2*pi/l*d1*(idtx-1)*sin(omegan));
+                    rx_side = exp(-1j*2*pi/l*d2*(idrx-1)*sin(thetan));
+                    mpc = temporal*tx_side*rx_side;
+%                     mpc = mpc/std(mpc);
+                    mpc_combined = mpc_combined + mpc; 
+                end
+%                 sum(abs(mpc_combined).^2)/length(t)
+                mpc_combined = mpc_combined/(std(mpc_combined));
+                sum(abs(mpc_combined).^2)/length(t)
+                H(:,idrx, idtx) = sqrt((K)/(K+1))*transpose(p_dominant(1,:)) + sqrt((1)/(K+1))*transpose(mpc_combined);
+%               
+        end
+            
+    end
+%     normalising power
+%     for idrx = 1:Nr
+%         for idtx = 1:Nt
+%             rms_amp = std(H(:,idrx,idtx));
+%             H(:,idrx,idtx) = H(:,idrx,idtx)/rms_amp;
+%         end
+%     end
+    
+end

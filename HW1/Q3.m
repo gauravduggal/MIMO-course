@@ -1,0 +1,74 @@
+close all
+clear all
+clc
+
+
+%Receive antennas
+Nr = 1;
+%Transmit antennas
+Nt = 1;
+%frequency
+f = 5e9;
+%wavelength
+l = 3e8/f;
+%Antenna spacing at rx
+d1 = l/2;
+%Antenna spacing at tx
+d2 = l/2;
+%number of multipath
+N = 10000;
+%sampling frequency
+fs = 1e3;
+%Time duration
+T = 5;
+%time axis
+t = 0:1/fs:T-1/fs;
+%max doppler
+fd = 100;
+% RIcian K factor
+K = 0;
+
+
+H = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx1 = H(:,1,1);
+df = 1/T;
+f = -fs/2:df:fs/2-df;
+plot(f,(1/length(rx1))*abs(fftshift(fft(rx1))))
+xlim([-fd-50,fd+50])
+xlabel('Doppler Frequency (Hz)')
+ylabel('Power (W)')
+title("Doppler Spectrum for fd = 100Hz")
+hold on
+
+f = linspace(-fd,fd,1000);
+D = 3./(2*pi*fd*sqrt(1-abs(f/fd)));
+plot(f,D,'-o')
+legend("simulated","theoretical")
+%Doppler spectrogram for fd = 15Hz
+figure;
+Nt = 1;
+Nr = 2;
+d1 = 0;
+d2 = l*0.4;
+fd = 15;
+N = 10000;
+fs = 1e3;
+T = 10;
+t = 0:1/fs:T-1/fs;
+K = 0;
+
+H = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx1 = H(:,1,1);
+df = 1/T;
+f = -fs/2:df:fs/2-df;
+plot(f,(1/length(rx1))*abs(fftshift(fft(rx1))))
+hold on
+xlim([-fd-50,fd+50])
+xlabel('Doppler Frequency (Hz)')
+ylabel('Power (W)')
+title("Doppler Spectrum for fd = 15Hz")
+f = linspace(-fd,fd,1000);
+D = 3./(2*pi*fd*sqrt(1-abs(f/fd)));
+plot(f,D,'-o')
+
+legend("simulated","theoretical")

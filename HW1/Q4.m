@@ -1,0 +1,152 @@
+close all
+clear all
+clc
+
+
+%Receive antennas
+Nr = 1;
+%Transmit antennas
+Nt = 1;
+%frequency
+f = 5e9;
+%wavelength
+l = 3e8/f;
+%Antenna spacing at rx
+d1 = l/2;
+%Antenna spacing at tx
+d2 = l/2;
+%number of multipath
+N = 1000;
+%sampling frequency
+fs = 1e3;
+%Time duration
+T = 100;
+%time axis
+t = 0:1/fs:T-1/fs;
+%max doppler
+fd = 100;
+% RIcian K factor
+K = 0;
+
+
+H1 = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx_mag1 = abs(H1(:,1,1));
+rx_phase1 = angle(H1(:,1,1));
+
+histogram(rx_mag1,500,EdgeColor="none",Normalization='pdf')
+hold on
+x = 0:0.1:5;
+% p = raylpdf(x,(1/1.2)^2);
+gt = ricepdf(x, K, 1);
+plot(x,gt,'-o')
+% plot(x,p,'-x')
+
+xlim([-0.5,5])
+legend("K=0 simulated","K=0 theoretical")
+title("Channel Magnitude Histogram for K=0 - Rayleigh")
+
+figure;
+K = 15;
+H2 = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx_mag2 = abs(H2(:,1,1));
+rx_phase2 = angle(H2(:,1,1));
+histogram(rx_mag2,500,EdgeColor="none",Normalization='pdf')
+
+hold on
+gt = ricepdf(x, K, 1);
+plot(x,gt,'-o')
+xlim([-0.5,5])
+legend("K=15 simulated","K=15 theoretical")
+title("Channel Magnitude Histogram for K=15 - Ricean")
+% hold on
+% % histfit(rx_mag2)
+% title("Magnitude for K=15 - Ricean")
+% xlim([-0.5,5])
+% figure;
+% histogram(rx_phase2,100,EdgeColor="none",Normalization='pdf')
+% hold on
+%
+
+%%
+
+Nt = 1;
+Nr = 4;
+N = 200;
+d1 = 0;
+d2 = l/2;
+fd = 100;
+fs = 1e3;
+T = 100;
+t = 0:1/fs:T-1/fs;
+K = 0;
+
+% H = channel_gaussian_angle_K(Nt, Nr, t, fd, d1,d2,N,l,K,u,sigma);
+H = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx1 = H(:,1,1);
+rx2 = H(:,2,1);
+rx3 = H(:,3,1);
+rx4 = H(:,4,1);
+
+r = zeros(length(t),1);
+for idt = 1:length(r)
+    pow_norm = sqrt(abs(rx1(idt))^2+abs(rx2(idt))^2+abs(rx3(idt))^2+abs(rx4(idt))^2);
+%     r(idt,1) = (conj(rx1(idt))*rx1(idt))+(conj(rx2(idt))*rx2(idt))+...
+%         (conj(rx3(idt))*rx3(idt))+(conj(rx4(idt))*rx4(idt));
+%     r(idt,1) = r(idt)/pow_norm;
+r(idt,1) = abs(rx1(idt,1))^2+abs(rx2(idt,1))^2+abs(rx3(idt,1))^2+abs(rx4(idt,1))^2;
+r(idt,1) = r(idt,1)/pow_norm;
+end
+% r = r/std(r);
+sum(abs(r).^2)/length(t)
+figure;
+histogram(r,500,EdgeColor="none",Normalization='pdf')
+h = histfit(r,500,'gamma');
+hold on
+legend("Simulated","Theoretical")
+title("Maximal ratio combining for spatially uncorrelated channel")
+xlabel("magnitude")
+ylabel("density")
+% x1 = 0:0.3:15;
+% x2 = 0:0.1:5;
+% y = chi2pdf(x1,2*Nr);
+% plot(x2,y,'-x')
+% xlim([-0.1,5])
+
+Nt = 1;
+Nr = 4;
+N = 200;
+d1 = 0;
+d2 = l/12;
+fd = 100;
+fs = 1e3;
+T = 100;
+t = 0:1/fs:T-1/fs;
+K = 0;
+u = 0;
+sigma = 5;
+H = channel_gaussian_angle_K(Nt, Nr, t, fd, d1,d2,N,l,K,u,sigma);
+% H = channel_uniform_angle_K(Nt, Nr, t, fd,d1,d2,N,l,K);
+rx1 = H(:,1,1);
+rx2 = H(:,2,1);
+rx3 = H(:,3,1);
+rx4 = H(:,4,1);
+
+r = zeros(length(t),1);
+for idt = 1:length(r)
+    pow_norm = sqrt(abs(rx1(idt))^2+abs(rx2(idt))^2+abs(rx3(idt))^2+abs(rx4(idt))^2);
+%     r(idt,1) = (conj(rx1(idt))*rx1(idt))+(conj(rx2(idt))*rx2(idt))+...
+%         (conj(rx3(idt))*rx3(idt))+(conj(rx4(idt))*rx4(idt));
+%     r(idt,1) = r(idt)/pow_norm;
+r(idt,1) = abs(rx1(idt,1))^2+abs(rx2(idt,1))^2+abs(rx3(idt,1))^2+abs(rx4(idt,1))^2;
+% r(idt,1) = r(idt,1)/pow_norm;
+end
+% r = r/std(r);
+figure;
+sum(abs(r).^2)/length(t)
+hold on
+histogram(r,500,EdgeColor="none",Normalization='pdf')
+legend("Simulated","Theoretical")
+title("Maximal ratio combining for spatially correlated channel")
+xlabel("magnitude")
+ylabel("density")
+xlim([-1,15])

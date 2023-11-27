@@ -1,0 +1,40 @@
+close all
+clear all
+clc
+% In linear algebra terms, a correlation matrix is a symmetric positive semidefinite matrix with unit diagonal. In other words, it is a symmetric matrix with ones on the diagonal whose eigenvalues are all nonnegative.
+% 
+% The term comes from statistics. If x_1, x_2, \dots, x_n are column vectors with m elements, each vector containing samples of a random variable, then the corresponding n\times n covariance matrix V has (i,j) element
+% 
+% v_{ij} = \mathrm{cov}(x_i,x_j) = \displaystyle\frac{1}{n-1}            (x_i - \overline{x}_i)^T (x_j - \overline{x}_j), 
+% 
+% where \overline{x}_i is the mean of the elements in x_i. If v has nonzero diagonal elements then we can scale the diagonal to 1 to obtain the corresponding correlation matrix
+% 
+% C = D^{-1/2} V D^{-1/2}, 
+% 
+% where D = \mathrm{diag}(v_{ii}). The (i,j) element c_{ij} = v_{ii}^{-1/2} v_{ij} v_{jj}^{-1/2} is the correlation between the variables x_i and x_j.
+% 
+% Here are a few facts.
+% 
+% The elements of a correlation matrix lie on the interval [-1, 1].
+% The eigenvalues of a correlation matrix lie on the interval [0,n].
+% The eigenvalues of a correlation matrix sum to n (since the eigenvalues of a matrix sum to its trace).
+% The maximal possible determinant of a correlation matrix is 1.
+% 
+%% for N random variables with M samples each are written in a MxN matrix H
+%% covariance matrix of the N random variables is given by 
+
+M = 2;
+N = 2;
+Ns = 100;
+s = randn(M,N,Ns)+1j*randn(M,N,Ns);
+Rrx = [1,0.5;
+    0.5,1];
+s2 = zeros(size(s));
+for i =1:Ns
+s2(:,:,i) = sqrtm(Rrx)*s(:,:,i);
+end
+sig = squeeze(s(1:2,1,:));
+cov_mtx(transpose(sig))
+
+sig = squeeze(s2(1:2,1,:));
+cov_mtx(transpose(sig))

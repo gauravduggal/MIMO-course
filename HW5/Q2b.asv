@@ -1,0 +1,59 @@
+clear all
+clc
+close all
+
+
+Ntrials = 1000;
+
+snrvec = 20:-0.5:0;
+ber =  zeros(size(snrvec));
+%BPSK
+k = 1;
+% sumber of subcarriers
+N = 64;
+for snridx=1:length(snrvec)
+    tic
+    snr = snrvec(snridx);
+    ber_snr = 0;
+    for trials=1:Ntrials
+        Nbits = N*k;
+        data_bits = floor(2*rand(Nbits,1));
+        bits = data_bits;
+        temp = reshape(bits,[k,N]);
+        sym_dec = bit2int(temp,k)';
+        %assume symbols are in frequency domain
+        sym = qammod(sym_dec,2^k,'UnitAveragePower',true);
+        %modulate the symbols and convert to time domain of N samples
+        tx = ifft(sym);
+        
+%         rx = tx;
+        %freq domain flat fading channel
+        H = (randn(1)+1j*randn(1))*ones(N,1)/(sqrt(2));
+%         H = ones(N,1);
+        
+        %apply channel in frequency domain
+        rx = ifft(fft(tx).*H);
+
+        rx = add_noise_td(rx,snr,k);
+        
+        %magic sauce section
+        s_est = fft(rx)./H;
+        s_est_dec = qamdemod(s_est,2^k,'UnitAveragePower',true);
+
+        ber_snr = ber_snr +  1/Ntrials*(1 - 1/(k*N)*sum(sum(int2bit(s_est_dec,k)==int2bit(sym_dec,k))));
+
+    end
+    ber(snridx) = ber_snr;
+    toc
+end
+legend_str = "OFDM-Flat-fading";
+semilogy(snrvec,ber,"-x","DisplayName",legend_str,LineWidth=1.5);
+ylim([1e-5 1])
+xlim([0,20])
+hold on
+legend
+theory_ber = 0.25/(10.^(snr_vec/10));
+legend_str = "OFDM-theory-flat-fading";
+semilogy(snrvec,ber,"-x","DisplayName",legend_str,LineWidth=1.5);
+
+
